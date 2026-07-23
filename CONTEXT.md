@@ -24,6 +24,10 @@ _Avoid_: Capture, recording, instrumentation
 An explicit, idempotent rerun of Import that reports added, changed, skipped, and failed Source Artifacts.
 _Avoid_: Sync, watch, background update
 
+**Import Diagnostic**:
+A visible, retryable record that identifies a Source Artifact and safely explains the stage at which its Import failed. One diagnostic does not prevent other valid activity from entering the Projection.
+_Avoid_: Import error, warning, log message
+
 **Local Processing**:
 Processing in which repository and agent session data remains on the Developer's device, with no network transmission or telemetry.
 _Avoid_: Local-first, private mode, offline-friendly

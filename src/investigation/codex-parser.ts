@@ -22,7 +22,15 @@ export interface ParsedCodexArtifact {
   diagnostics: ImportDiagnostic[];
 }
 
-export async function parseCodexArtifact(artifactPath: string): Promise<ParsedCodexArtifact> {
+export interface ParseCodexArtifactOptions {
+  includeEvents?: boolean;
+  expandTruncatedEvents?: boolean;
+}
+
+export async function parseCodexArtifact(
+  artifactPath: string,
+  options: ParseCodexArtifactOptions = {},
+): Promise<ParsedCodexArtifact> {
   const source = await readFile(artifactPath, 'utf8');
   const artifact = basename(artifactPath);
   const diagnostics: ImportDiagnostic[] = [];
@@ -48,12 +56,12 @@ export async function parseCodexArtifact(artifactPath: string): Promise<ParsedCo
     ? `codex:${stableId}`
     : `codex:inferred:${createHash('sha256').update(source).digest('hex')}`;
 
-  const events: SessionEvent[] = [];
+  const allEvents: SessionEvent[] = [];
   records.forEach((record, recordIndex) => {
     if (record === metadata) return;
-    const event = eventFromRecord(record, id, recordIndex);
+    const event = eventFromRecord(record, id, recordIndex, options.expandTruncatedEvents ?? false);
     if (event) {
-      events.push(event);
+      allEvents.push(event);
       return;
     }
     diagnostics.push(
@@ -64,21 +72,22 @@ export async function parseCodexArtifact(artifactPath: string): Promise<ParsedCo
       ),
     );
   });
-  events.sort(
+  allEvents.sort(
     (left, right) =>
       left.occurredAt.localeCompare(right.occurredAt) || left.id.localeCompare(right.id),
   );
 
   const observedAt =
-    timestamp(metadata) ?? events[0]?.occurredAt ?? new Date(0).toISOString();
+    timestamp(metadata) ?? allEvents[0]?.occurredAt ?? new Date(0).toISOString();
   const title =
-    events.find((event) => event.kind === 'prompt')?.content.slice(0, 80) || 'Codex Agent Session';
+    allEvents.find((event) => event.kind === 'prompt')?.content.slice(0, 80) ||
+    'Codex Agent Session';
   const timelineEntry: SessionTimelineEntry = {
     type: 'session',
     id,
     title,
     observedAt,
-    eventCount: events.length,
+    eventCount: allEvents.length,
   };
 
   return {
@@ -86,7 +95,7 @@ export async function parseCodexArtifact(artifactPath: string): Promise<ParsedCo
     session: {
       ...timelineEntry,
       repositoryPath,
-      events,
+      events: options.includeEvents === false ? [] : allEvents,
       associations: [],
     },
     diagnostics,
@@ -97,6 +106,7 @@ function eventFromRecord(
   record: CodexRecord,
   sessionId: string,
   recordIndex: number,
+  expandTruncated: boolean,
 ): SessionEvent | null {
   const occurredAt = timestamp(record);
   if (!occurredAt) return null;
@@ -122,7 +132,7 @@ function eventFromRecord(
 
   if (!kind || content === undefined) return null;
   const masked = maskSecrets(content);
-  const truncated = masked.length > MAX_EVENT_LENGTH;
+  const truncated = !expandTruncated && masked.length > MAX_EVENT_LENGTH;
   return {
     id: `${sessionId}:event:${recordIndex}`,
     kind,

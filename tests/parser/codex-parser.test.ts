@@ -33,4 +33,66 @@ describe('Codex Source Artifact parser', () => {
       }),
     ]);
   });
+
+  it('keeps stable provider identity and orders supported Session Events by source timestamp', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'codex-artifact-current-'));
+    const artifactPath = join(directory, 'current.jsonl');
+    await writeFile(
+      artifactPath,
+      [
+        '{"timestamp":"2026-07-23T11:00:00+01:00","type":"session_meta","payload":{"id":"session-123","cwd":"/project/code-time-machine","git":{"commit_hash":"starting-only"}}}',
+        '{"timestamp":"2026-07-23T11:00:04+01:00","type":"response_item","payload":{"type":"function_call","name":"apply_patch","arguments":"update README.md"}}',
+        '{"timestamp":"2026-07-23T11:00:02+01:00","type":"response_item","payload":{"type":"function_call","name":"exec_command","arguments":"npm test"}}',
+        '{"timestamp":"2026-07-23T11:00:01+01:00","type":"event_msg","payload":{"type":"user_message","message":"Build it"}}',
+        '{"timestamp":"2026-07-23T11:00:03+01:00","type":"response_item","payload":{"type":"function_call","name":"exec_command","arguments":"git status"}}',
+        '{"timestamp":"2026-07-23T11:00:05+01:00","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Done"}]}}',
+      ].join('\n'),
+    );
+
+    const parsed = await parseCodexArtifact(artifactPath);
+
+    expect(parsed.session.id).toBe('codex:session-123');
+    expect(parsed.session.observedAt).toBe('2026-07-23T11:00:00+01:00');
+    expect(parsed.session.events.map((event) => event.kind)).toEqual([
+      'prompt',
+      'test-run',
+      'tool-call',
+      'file-operation',
+      'response',
+    ]);
+    expect(parsed.session.events.map((event) => event.occurredAt)).toEqual([
+      '2026-07-23T11:00:01+01:00',
+      '2026-07-23T11:00:02+01:00',
+      '2026-07-23T11:00:03+01:00',
+      '2026-07-23T11:00:04+01:00',
+      '2026-07-23T11:00:05+01:00',
+    ]);
+    expect(JSON.stringify(parsed.session)).not.toContain('starting-only');
+  });
+
+  it('marks large Session Events as visibly Truncated', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'codex-artifact-large-'));
+    const artifactPath = join(directory, 'large.jsonl');
+    await writeFile(
+      artifactPath,
+      [
+        '{"timestamp":"2026-07-23T10:00:00.000Z","type":"session_meta","payload":{"id":"large","cwd":"/project"}}',
+        JSON.stringify({
+          timestamp: '2026-07-23T10:00:01.000Z',
+          type: 'event_msg',
+          payload: { type: 'user_message', message: 'x'.repeat(20_000) },
+        }),
+      ].join('\n'),
+    );
+
+    const parsed = await parseCodexArtifact(artifactPath);
+    const expanded = await parseCodexArtifact(artifactPath, { expandTruncatedEvents: true });
+
+    expect(parsed.session.events[0]).toMatchObject({ isTruncated: true });
+    expect(parsed.session.events[0]?.content).toContain('[TRUNCATED]');
+    expect(expanded.session.events[0]).toMatchObject({
+      isTruncated: false,
+      content: 'x'.repeat(20_000),
+    });
+  });
 });

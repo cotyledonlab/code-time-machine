@@ -81,5 +81,5 @@ An evidence-backed relationship between a Commit and an Agent Session, carrying 
 _Avoid_: Causation, attribution, ownership
 
 **Association Confidence**:
-The explainable strength or disposition of an Association: Confirmed when established explicitly, Strong when multiple independent signals agree, Possible when evidence is limited, or Rejected when a Correction says the relationship is false. It is never expressed as a synthetic percentage.
+The explainable strength or disposition of an Association. Confirmed requires an explicit Correction or documented direct source link; Strong requires matching Repository Identity plus a successful Git operation or result containing the Commit SHA; Possible requires matching Repository Identity plus at least two circumstantial signals; Rejected requires a Correction. Time proximity alone never creates an Association, and confidence is never expressed as a synthetic percentage.
 _Avoid_: Score, probability, certainty

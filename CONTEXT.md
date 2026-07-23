@@ -60,6 +60,10 @@ _Avoid_: Override, edit, patch
 Replacing a recognized secret with a concealed representation in the Projection, UI, copy, or export while leaving its Source Artifact unchanged. Masking reduces exposure but is not guaranteed to detect every secret.
 _Avoid_: Redaction, deletion, sanitization
 
+**Truncation**:
+Presenting a bounded portion of oversized text with an explicit indicator and local action to load more, without altering or discarding the Source Artifact.
+_Avoid_: Clipping, omission, data loss
+
 **Agent Session**:
 An imported record of interactions between a Developer and a coding agent. It is source evidence and may relate to zero, one, or multiple commits.
 _Avoid_: Replay, conversation, cause

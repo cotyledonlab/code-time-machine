@@ -24,6 +24,18 @@ _Avoid_: Capture, recording, instrumentation
 Processing in which repository and agent session data remains on the Developer's device, with no network transmission or telemetry.
 _Avoid_: Local-first, private mode, offline-friendly
 
+**Source Artifact**:
+An authoritative Git or agent session record from which coding activity is imported.
+_Avoid_: Source data, raw record, input
+
+**Projection**:
+A local, indexed representation rebuilt from Source Artifacts to support the Timeline, association, and search.
+_Avoid_: Database, cache, source of truth
+
+**Correction**:
+A durable Developer-authored adjustment to reconstructed activity, such as confirming or rejecting an Association. Corrections survive Projection rebuilds.
+_Avoid_: Override, edit, patch
+
 **Agent Session**:
 An imported record of interactions between a Developer and a coding agent. It is source evidence and may relate to zero, one, or multiple commits.
 _Avoid_: Replay, conversation, cause

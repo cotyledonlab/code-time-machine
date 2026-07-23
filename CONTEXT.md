@@ -51,3 +51,7 @@ _Avoid_: Timeline event, entry
 **Association**:
 An evidence-backed relationship between a Commit and an Agent Session, carrying its basis and confidence without asserting that the session caused the commit.
 _Avoid_: Causation, attribution, ownership
+
+**Association Confidence**:
+The explainable strength or disposition of an Association: Confirmed when established explicitly, Strong when multiple independent signals agree, Possible when evidence is limited, or Rejected when a Correction says the relationship is false. It is never expressed as a synthetic percentage.
+_Avoid_: Score, probability, certainty

@@ -53,7 +53,7 @@ A local, indexed representation rebuilt from Source Artifacts to support the Tim
 _Avoid_: Database, cache, source of truth
 
 **Correction**:
-A durable Developer-authored adjustment to reconstructed activity, such as confirming or rejecting an Association. Corrections survive Projection rebuilds.
+A durable Developer-authored action that confirms, rejects, manually creates, or undoes an Association. Corrections retain the inferred state they replaced and survive Projection rebuilds.
 _Avoid_: Override, edit, patch
 
 **Masking**:

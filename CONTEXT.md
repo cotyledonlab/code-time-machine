@@ -20,6 +20,10 @@ _Avoid_: Event, record, item
 A read-only reconstruction of coding activity from existing Git history and agent session artifacts. Import never intercepts agent traffic or changes the Developer's workflow.
 _Avoid_: Capture, recording, instrumentation
 
+**Local Processing**:
+Processing in which repository and agent session data remains on the Developer's device, with no network transmission or telemetry.
+_Avoid_: Local-first, private mode, offline-friendly
+
 **Agent Session**:
 An imported record of interactions between a Developer and a coding agent. It is source evidence and may relate to zero, one, or multiple commits.
 _Avoid_: Replay, conversation, cause

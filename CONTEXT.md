@@ -20,6 +20,10 @@ _Avoid_: Event, record, item
 The timestamp used to order a Timeline Entry: session start time for an Agent Session and Git committer time for a Commit. Other source timestamps remain visible as evidence, and ties are resolved deterministically.
 _Avoid_: Created time, event time, author time
 
+**Imported Commit**:
+A Commit reachable from any local Git ref and included once in the Timeline by SHA, with branch and tag membership retained as metadata.
+_Avoid_: Current-branch commit, local commit, historical commit
+
 **Import**:
 A read-only reconstruction of coding activity from existing Git history and agent session artifacts. Import never intercepts agent traffic or changes the Developer's workflow.
 _Avoid_: Capture, recording, instrumentation

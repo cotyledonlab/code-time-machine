@@ -36,6 +36,10 @@ _Avoid_: Database, cache, source of truth
 A durable Developer-authored adjustment to reconstructed activity, such as confirming or rejecting an Association. Corrections survive Projection rebuilds.
 _Avoid_: Override, edit, patch
 
+**Masking**:
+Replacing a recognized secret with a concealed representation in the Projection, UI, copy, or export while leaving its Source Artifact unchanged. Masking reduces exposure but is not guaranteed to detect every secret.
+_Avoid_: Redaction, deletion, sanitization
+
 **Agent Session**:
 An imported record of interactions between a Developer and a coding agent. It is source evidence and may relate to zero, one, or multiple commits.
 _Avoid_: Replay, conversation, cause

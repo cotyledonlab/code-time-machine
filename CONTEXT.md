@@ -56,6 +56,10 @@ _Avoid_: Redaction, deletion, sanitization
 An imported record of interactions between a Developer and a coding agent. It is source evidence and may relate to zero, one, or multiple commits.
 _Avoid_: Replay, conversation, cause
 
+**Agent Session Identity**:
+The provider-scoped stable identifier used to recognize the same Agent Session across Imports. When a Source Artifact has no stable identifier, an inferred deterministic content fingerprint is used instead of its file path.
+_Avoid_: Session path, filename, log identity
+
 **Session Event**:
 A prompt, response, tool call, test run, or file operation nested within an Agent Session rather than shown as a top-level Timeline Entry.
 _Avoid_: Timeline event, entry

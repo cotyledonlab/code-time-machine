@@ -6,7 +6,6 @@ const config: ForgeConfig = {
   packagerConfig: {
     appBundleId: 'lab.cotyledon.code-time-machine',
     asar: true,
-    osxSign: false,
   },
   makers: [new MakerDMG({ format: 'ULFO' })],
   plugins: [

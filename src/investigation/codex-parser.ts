@@ -134,7 +134,11 @@ async function inspectCodexArtifact(artifactPath: string): Promise<ParsedCodexAr
       }
       continue;
     }
-    if (isSupportedEventShape(line, recordType, payloadType) && recordTimestamp) {
+    if (
+      isSupportedEventShape(line, recordType, payloadType) &&
+      recordTimestamp &&
+      !Number.isNaN(Date.parse(recordTimestamp))
+    ) {
       eventCount += 1;
       if (!firstEventAt || compareTimestamps(recordTimestamp, firstEventAt) < 0) {
         firstEventAt = recordTimestamp;

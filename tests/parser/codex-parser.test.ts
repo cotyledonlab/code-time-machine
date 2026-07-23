@@ -98,6 +98,7 @@ describe('Codex Source Artifact parser', () => {
       [
         '{"timestamp":"2026-07-23T10:00:00.000Z","type":"session_meta","payload":{"id":"evolving","cwd":"/project"}}',
         '{"timestamp":"2026-07-23T10:00:01.000Z","type":"response_item","payload":{"type":"message","role":"assistant"}}',
+        '{"timestamp":"not-a-date","type":"event_msg","payload":{"type":"agent_message","message":"Invalid time"}}',
         '{"timestamp":"2026-07-23T10:00:02.000Z","type":"event_msg","payload":{"type":"agent_message","message":"Supported"}}',
       ].join('\n'),
     );

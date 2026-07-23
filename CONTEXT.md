@@ -7,3 +7,7 @@ Code Time Machine reconstructs AI-assisted software work so a developer can unde
 **Developer**:
 The person investigating their own AI-assisted work in a local repository.
 _Avoid_: User, operator, team member
+
+**Timeline**:
+The chronological view of imported coding activity within a selected repository, from which a Developer investigates individual commits and their associated agent interactions.
+_Avoid_: Feed, history, activity log

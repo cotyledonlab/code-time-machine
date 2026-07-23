@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
+import { createInterface } from 'node:readline';
 import type {
   AgentSessionDetail,
   ImportDiagnostic,
@@ -31,6 +33,8 @@ export async function parseCodexArtifact(
   artifactPath: string,
   options: ParseCodexArtifactOptions = {},
 ): Promise<ParsedCodexArtifact> {
+  if (options.includeEvents === false) return inspectCodexArtifact(artifactPath);
+
   const source = await readFile(artifactPath, 'utf8');
   const artifact = basename(artifactPath);
   const diagnostics: ImportDiagnostic[] = [];
@@ -74,7 +78,7 @@ export async function parseCodexArtifact(
   });
   allEvents.sort(
     (left, right) =>
-      left.occurredAt.localeCompare(right.occurredAt) || left.id.localeCompare(right.id),
+      compareTimestamps(left.occurredAt, right.occurredAt) || left.id.localeCompare(right.id),
   );
 
   const observedAt =
@@ -95,11 +99,111 @@ export async function parseCodexArtifact(
     session: {
       ...timelineEntry,
       repositoryPath,
-      events: options.includeEvents === false ? [] : allEvents,
+      events: allEvents,
       associations: [],
     },
     diagnostics,
   };
+}
+
+async function inspectCodexArtifact(artifactPath: string): Promise<ParsedCodexArtifact> {
+  const artifact = basename(artifactPath);
+  const fingerprint = createHash('sha256');
+  const diagnostics: ImportDiagnostic[] = [];
+  let metadata: CodexRecord | undefined;
+  let eventCount = 0;
+  let firstEventAt: string | undefined;
+
+  const lines = createInterface({
+    input: createReadStream(artifactPath, { encoding: 'utf8' }),
+    crlfDelay: Infinity,
+  });
+  let lineNumber = 0;
+  for await (const line of lines) {
+    lineNumber += 1;
+    if (!line.trim()) continue;
+    fingerprint.update(line).update('\n');
+    const recordType = extractJsonString(line, 'type', 0);
+    const payloadType = extractJsonString(line, 'type', 1);
+    const recordTimestamp = extractJsonString(line, 'timestamp', 0);
+    if (recordType === 'session_meta') {
+      try {
+        metadata = JSON.parse(line) as CodexRecord;
+      } catch {
+        diagnostics.push(diagnostic(artifact, 'parse', `Malformed JSONL at line ${lineNumber}.`));
+      }
+      continue;
+    }
+    if (isSupportedEventShape(recordType, payloadType) && recordTimestamp) {
+      eventCount += 1;
+      if (!firstEventAt || compareTimestamps(recordTimestamp, firstEventAt) < 0) {
+        firstEventAt = recordTimestamp;
+      }
+      continue;
+    }
+    if (recordType) {
+      diagnostics.push(
+        diagnostic(artifact, 'validation', `Unsupported Codex record type: ${recordType}`),
+      );
+    } else {
+      diagnostics.push(diagnostic(artifact, 'parse', `Malformed JSONL at line ${lineNumber}.`));
+    }
+  }
+
+  const metadataPayload = objectPayload(metadata?.payload);
+  const repositoryPath = stringValue(metadataPayload.cwd) ?? '';
+  const stableId =
+    stringValue(metadataPayload.id) ??
+    stringValue(metadataPayload.session_id) ??
+    stringValue(metadataPayload.sessionId);
+  const id = stableId
+    ? `codex:${stableId}`
+    : `codex:inferred:${fingerprint.digest('hex')}`;
+  const timelineEntry: SessionTimelineEntry = {
+    type: 'session',
+    id,
+    title: 'Codex Agent Session',
+    observedAt: timestamp(metadata) ?? firstEventAt ?? new Date(0).toISOString(),
+    eventCount,
+  };
+  return {
+    timelineEntry,
+    session: {
+      ...timelineEntry,
+      repositoryPath,
+      events: [],
+      associations: [],
+    },
+    diagnostics,
+  };
+}
+
+function extractJsonString(line: string, key: string, occurrence: number): string | undefined {
+  const expression = new RegExp(`"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`, 'gu');
+  let match: RegExpExecArray | null;
+  let index = 0;
+  while ((match = expression.exec(line))) {
+    if (index === occurrence) {
+      try {
+        return JSON.parse(`"${match[1]}"`) as string;
+      } catch {
+        return undefined;
+      }
+    }
+    index += 1;
+  }
+  return undefined;
+}
+
+function isSupportedEventShape(recordType?: string, payloadType?: string): boolean {
+  return (
+    (recordType === 'event_msg' &&
+      (payloadType === 'user_message' || payloadType === 'agent_message')) ||
+    (recordType === 'response_item' &&
+      (payloadType === 'message' ||
+        payloadType === 'function_call' ||
+        payloadType === 'function_call_output'))
+  );
 }
 
 function eventFromRecord(
@@ -178,6 +282,10 @@ function timestamp(record?: CodexRecord): string | undefined {
   return typeof record?.timestamp === 'string' && !Number.isNaN(Date.parse(record.timestamp))
     ? record.timestamp
     : undefined;
+}
+
+export function compareTimestamps(left: string, right: string): number {
+  return Date.parse(left) - Date.parse(right) || left.localeCompare(right);
 }
 
 function objectPayload(value: unknown): Record<string, unknown> {

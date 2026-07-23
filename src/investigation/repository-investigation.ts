@@ -10,7 +10,7 @@ import type {
   Repository,
   TimelineEntry,
 } from '../domain';
-import { parseCodexArtifact } from './codex-parser';
+import { compareTimestamps, parseCodexArtifact } from './codex-parser';
 import { GitSource } from './git-source';
 
 export interface RepositoryInvestigationOptions {
@@ -155,7 +155,7 @@ async function discoverJsonlArtifacts(root: string): Promise<string[]> {
 
 function compareTimelineEntries(left: TimelineEntry, right: TimelineEntry): number {
   return (
-    right.observedAt.localeCompare(left.observedAt) ||
+    compareTimestamps(right.observedAt, left.observedAt) ||
     left.type.localeCompare(right.type) ||
     left.id.localeCompare(right.id)
   );

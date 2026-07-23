@@ -39,19 +39,11 @@ describe('Codex Source Artifact parser', () => {
   it('keeps stable provider identity and orders supported Session Events by source timestamp', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'codex-artifact-current-'));
     const artifactPath = join(directory, 'current.jsonl');
-    await writeFile(
-      artifactPath,
-      [
-        '{"timestamp":"2026-07-23T11:00:00+01:00","type":"session_meta","payload":{"id":"session-123","cwd":"/project/code-time-machine","git":{"commit_hash":"starting-only"}}}',
-        '{"timestamp":"2026-07-23T11:00:04+01:00","type":"response_item","payload":{"type":"function_call","name":"apply_patch","arguments":"update README.md"}}',
-        '{"timestamp":"2026-07-23T11:00:02+01:00","type":"response_item","payload":{"type":"function_call","name":"exec_command","arguments":"npm test"}}',
-        '{"timestamp":"2026-07-23T11:00:01+01:00","type":"event_msg","payload":{"type":"user_message","message":"Build it"}}',
-        '{"timestamp":"2026-07-23T10:30:00+00:00","type":"event_msg","payload":{"type":"user_message","message":"Later in absolute time"}}',
-        '{"timestamp":"2026-07-23T11:00:03+01:00","type":"response_item","payload":{"type":"function_call","name":"exec_command","arguments":"git status"}}',
-        '{"timestamp":"2026-07-23T11:00:05+01:00","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Done"}]}}',
-        '{"timestamp":"2026-07-23T11:00:06+01:00","type":"event_msg","payload":{"type":"agent_message","message":"Also done"}}',
-      ].join('\n'),
+    const fixture = await readFile(
+      new URL('../fixtures/codex/current-session.jsonl', import.meta.url),
+      'utf8',
     );
+    await writeFile(artifactPath, fixture);
 
     const parsed = await parseCodexArtifact(artifactPath);
 
@@ -81,17 +73,11 @@ describe('Codex Source Artifact parser', () => {
   it('marks large Session Events as visibly Truncated', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'codex-artifact-large-'));
     const artifactPath = join(directory, 'large.jsonl');
-    await writeFile(
-      artifactPath,
-      [
-        '{"timestamp":"2026-07-23T10:00:00.000Z","type":"session_meta","payload":{"id":"large","cwd":"/project"}}',
-        JSON.stringify({
-          timestamp: '2026-07-23T10:00:01.000Z',
-          type: 'event_msg',
-          payload: { type: 'user_message', message: 'x'.repeat(20_000) },
-        }),
-      ].join('\n'),
+    const fixture = await readFile(
+      new URL('../fixtures/codex/large-session.jsonl', import.meta.url),
+      'utf8',
     );
+    await writeFile(artifactPath, fixture.replace('__LARGE_CONTENT__', 'x'.repeat(20_000)));
 
     const parsed = await parseCodexArtifact(artifactPath);
     const expanded = await parseCodexArtifact(artifactPath, { expandTruncatedEvents: true });

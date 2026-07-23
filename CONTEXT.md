@@ -16,6 +16,10 @@ _Avoid_: Feed, history, activity log
 A top-level item on the Timeline representing either a Commit or an Agent Session.
 _Avoid_: Event, record, item
 
+**Observed Time**:
+The timestamp used to order a Timeline Entry: session start time for an Agent Session and Git committer time for a Commit. Other source timestamps remain visible as evidence, and ties are resolved deterministically.
+_Avoid_: Created time, event time, author time
+
 **Import**:
 A read-only reconstruction of coding activity from existing Git history and agent session artifacts. Import never intercepts agent traffic or changes the Developer's workflow.
 _Avoid_: Capture, recording, instrumentation

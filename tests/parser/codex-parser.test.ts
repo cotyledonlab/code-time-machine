@@ -19,8 +19,10 @@ describe('Codex Source Artifact parser', () => {
 
     const first = await parseCodexArtifact(firstPath);
     const moved = await parseCodexArtifact(movedPath);
+    const metadataOnly = await parseCodexArtifact(firstPath, { includeEvents: false });
 
     expect(first.session.id).toBe(moved.session.id);
+    expect(metadataOnly.session.id).toBe(first.session.id);
     expect(first.session.id).toMatch(/^codex:inferred:/);
     expect(first.session.events.map((event) => event.kind)).toEqual(['prompt', 'response']);
     expect(first.session.events[0]?.content).toContain('[MASKED secret]');

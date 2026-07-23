@@ -58,7 +58,7 @@ export async function parseCodexArtifact(
     stringValue(metadataPayload.sessionId);
   const id = stableId
     ? `codex:${stableId}`
-    : `codex:inferred:${createHash('sha256').update(source).digest('hex')}`;
+    : `codex:inferred:${contentFingerprint(source)}`;
 
   const allEvents: SessionEvent[] = [];
   records.forEach((record, recordIndex) => {
@@ -121,8 +121,8 @@ async function inspectCodexArtifact(artifactPath: string): Promise<ParsedCodexAr
   let lineNumber = 0;
   for await (const line of lines) {
     lineNumber += 1;
-    if (!line.trim()) continue;
     fingerprint.update(line).update('\n');
+    if (!line.trim()) continue;
     const recordType = extractJsonString(line, 'type', 0);
     const payloadType = extractJsonString(line, 'type', 1);
     const recordTimestamp = extractJsonString(line, 'timestamp', 0);
@@ -176,6 +176,11 @@ async function inspectCodexArtifact(artifactPath: string): Promise<ParsedCodexAr
     },
     diagnostics,
   };
+}
+
+function contentFingerprint(source: string): string {
+  const normalized = source.replace(/\r\n/gu, '\n').replace(/\n?$/u, '\n');
+  return createHash('sha256').update(normalized).digest('hex');
 }
 
 function extractJsonString(line: string, key: string, occurrence: number): string | undefined {

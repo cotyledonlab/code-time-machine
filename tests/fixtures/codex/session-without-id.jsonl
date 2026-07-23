@@ -1,0 +1,4 @@
+{"timestamp":"2026-07-23T10:00:00.000Z","type":"session_meta","payload":{"cwd":"__REPOSITORY_PATH__"}}
+{"timestamp":"2026-07-23T10:00:01.000Z","type":"event_msg","payload":{"type":"user_message","message":"Please inspect token sk-test-abcdefghijklmnopqrstuvwxyz123456"}}
+{"timestamp":"2026-07-23T10:00:02.000Z","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"I will inspect it."}]}}
+{"timestamp":"2026-07-23T10:00:03.000Z","type":"future_record","payload":{"value":"not understood"}}

@@ -11,3 +11,7 @@ _Avoid_: User, operator, team member
 **Timeline**:
 The chronological view of imported coding activity within a selected repository, from which a Developer investigates individual commits and their associated agent interactions.
 _Avoid_: Feed, history, activity log
+
+**Import**:
+A read-only reconstruction of coding activity from existing Git history and agent session artifacts. Import never intercepts agent traffic or changes the Developer's workflow.
+_Avoid_: Capture, recording, instrumentation

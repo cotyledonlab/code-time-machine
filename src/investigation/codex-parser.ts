@@ -134,7 +134,7 @@ async function inspectCodexArtifact(artifactPath: string): Promise<ParsedCodexAr
       }
       continue;
     }
-    if (isSupportedEventShape(recordType, payloadType) && recordTimestamp) {
+    if (isSupportedEventShape(line, recordType, payloadType) && recordTimestamp) {
       eventCount += 1;
       if (!firstEventAt || compareTimestamps(recordTimestamp, firstEventAt) < 0) {
         firstEventAt = recordTimestamp;
@@ -200,14 +200,22 @@ function extractJsonString(line: string, key: string, occurrence: number): strin
   return undefined;
 }
 
-function isSupportedEventShape(recordType?: string, payloadType?: string): boolean {
-  return (
-    (recordType === 'event_msg' &&
-      (payloadType === 'user_message' || payloadType === 'agent_message')) ||
-    (recordType === 'response_item' &&
-      (payloadType === 'message' ||
-        payloadType === 'function_call' ||
-        payloadType === 'function_call_output'))
+function isSupportedEventShape(
+  line: string,
+  recordType?: string,
+  payloadType?: string,
+): boolean {
+  if (
+    recordType === 'event_msg' &&
+    (payloadType === 'user_message' || payloadType === 'agent_message')
+  ) {
+    return extractJsonString(line, 'message', 0) !== undefined;
+  }
+  if (recordType !== 'response_item') return false;
+  if (payloadType === 'function_call' || payloadType === 'function_call_output') return true;
+  if (payloadType !== 'message') return false;
+  return ['content', 'text', 'input_text', 'output_text'].some(
+    (key) => extractJsonString(line, key, 0) !== undefined,
   );
 }
 

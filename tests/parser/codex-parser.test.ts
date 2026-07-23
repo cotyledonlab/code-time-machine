@@ -89,4 +89,23 @@ describe('Codex Source Artifact parser', () => {
       content: 'x'.repeat(20_000),
     });
   });
+
+  it('keeps deferred Session Event counts aligned with loadable events', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'codex-artifact-evolving-'));
+    const artifactPath = join(directory, 'evolving.jsonl');
+    await writeFile(
+      artifactPath,
+      [
+        '{"timestamp":"2026-07-23T10:00:00.000Z","type":"session_meta","payload":{"id":"evolving","cwd":"/project"}}',
+        '{"timestamp":"2026-07-23T10:00:01.000Z","type":"response_item","payload":{"type":"message","role":"assistant"}}',
+        '{"timestamp":"2026-07-23T10:00:02.000Z","type":"event_msg","payload":{"type":"agent_message","message":"Supported"}}',
+      ].join('\n'),
+    );
+
+    const deferred = await parseCodexArtifact(artifactPath, { includeEvents: false });
+    const loaded = await parseCodexArtifact(artifactPath);
+
+    expect(deferred.timelineEntry.eventCount).toBe(loaded.session.events.length);
+    expect(deferred.timelineEntry.eventCount).toBe(1);
+  });
 });

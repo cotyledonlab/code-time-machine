@@ -117,6 +117,9 @@ function eventFromRecord(
   if (record.type === 'event_msg' && payload.type === 'user_message') {
     kind = 'prompt';
     content = stringValue(payload.message);
+  } else if (record.type === 'event_msg' && payload.type === 'agent_message') {
+    kind = 'response';
+    content = stringValue(payload.message);
   } else if (record.type === 'response_item' && payload.type === 'message') {
     kind = payload.role === 'user' ? 'prompt' : 'response';
     content = textContent(payload.content);

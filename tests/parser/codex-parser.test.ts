@@ -46,6 +46,7 @@ describe('Codex Source Artifact parser', () => {
         '{"timestamp":"2026-07-23T11:00:01+01:00","type":"event_msg","payload":{"type":"user_message","message":"Build it"}}',
         '{"timestamp":"2026-07-23T11:00:03+01:00","type":"response_item","payload":{"type":"function_call","name":"exec_command","arguments":"git status"}}',
         '{"timestamp":"2026-07-23T11:00:05+01:00","type":"response_item","payload":{"type":"message","role":"assistant","content":[{"type":"output_text","text":"Done"}]}}',
+        '{"timestamp":"2026-07-23T11:00:06+01:00","type":"event_msg","payload":{"type":"agent_message","message":"Also done"}}',
       ].join('\n'),
     );
 
@@ -59,6 +60,7 @@ describe('Codex Source Artifact parser', () => {
       'tool-call',
       'file-operation',
       'response',
+      'response',
     ]);
     expect(parsed.session.events.map((event) => event.occurredAt)).toEqual([
       '2026-07-23T11:00:01+01:00',
@@ -66,6 +68,7 @@ describe('Codex Source Artifact parser', () => {
       '2026-07-23T11:00:03+01:00',
       '2026-07-23T11:00:04+01:00',
       '2026-07-23T11:00:05+01:00',
+      '2026-07-23T11:00:06+01:00',
     ]);
     expect(JSON.stringify(parsed.session)).not.toContain('starting-only');
   });

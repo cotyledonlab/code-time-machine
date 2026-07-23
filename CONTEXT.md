@@ -28,6 +28,10 @@ _Avoid_: Local-first, private mode, offline-friendly
 An authoritative Git or agent session record from which coding activity is imported.
 _Avoid_: Source data, raw record, input
 
+**Repository Identity**:
+The Git-derived identity used to determine whether activity belongs to the selected repository across moved paths and linked worktrees. Filesystem paths, remotes, and shared commit SHAs are evidence about identity rather than identity by themselves.
+_Avoid_: Repository path, remote URL, folder
+
 **Projection**:
 A local, indexed representation rebuilt from Source Artifacts to support the Timeline, association, and search.
 _Avoid_: Database, cache, source of truth

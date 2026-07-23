@@ -56,6 +56,10 @@ _Avoid_: Database, cache, source of truth
 A durable Developer-authored action that confirms, rejects, manually creates, or undoes an Association. Corrections retain the inferred state they replaced and survive Projection rebuilds.
 _Avoid_: Override, edit, patch
 
+**Dormant Correction**:
+A Correction whose Agent Session or Commit is absent from the current Projection. It remains stored and reactivates only when the same identity returns in a later Refresh.
+_Avoid_: Orphan, stale correction, deleted correction
+
 **Masking**:
 Replacing a recognized secret with a concealed representation in the Projection, UI, copy, or export while leaving its Source Artifact unchanged. Masking reduces exposure but is not guaranteed to detect every secret.
 _Avoid_: Redaction, deletion, sanitization
